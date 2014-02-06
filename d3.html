@@ -113,8 +113,9 @@ yAxis = d3.svg.axis()
 	.orient "left"
 
 line = d3.svg.line()
-	.x (d) -> foo = d.month; console.log foo; x foo
+	.x (d) -> x d.month
 	.y (d) -> y d.score
+	.interpolate "basis"
 
 svg = d3.select "body"
 	.append "svg"
