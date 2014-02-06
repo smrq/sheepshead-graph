@@ -19,6 +19,8 @@ body {
 	shape-rendering: crispEdges;
 }
 
+.x.axis .tick { display: none; }
+
 .line {
 	fill: none;
 	stroke: steelblue;
@@ -134,7 +136,7 @@ g = svg.append "g"
 
 g.append "g"
 	.attr "class", "x axis"
-	.attr "transform", "translate(0,#{height})"
+	.attr "transform", "translate(0,#{y 0})"
 	.call xAxis
 
 g.append "g"
