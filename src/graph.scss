@@ -5,7 +5,7 @@ body {
 .axis path,
 .axis line {
 	fill: none;
-	stroke: #000;
+	stroke: black;
 	shape-rendering: crispEdges;
 }
 
@@ -13,21 +13,28 @@ body {
 	display: none;
 }
 
-.line {
+.player .line {
 	fill: none;
 	stroke: steelblue;
 	stroke-width: 1.5px;
 }
 
-.line.hover {
+.player.hover .line {
 	stroke-width: 5px;
 }
 
-.line + .caption {
+.player .line-target {
+	fill: none;
+	stroke: black;
+	stroke-width: 20px;
+	opacity: 0;
+}
+
+.player .caption {
 	display: none;
 	font-size: 14px;
 }
 
-.line.hover + .caption {
+.player.hover .caption {
 	display: block;
 }

@@ -11,8 +11,7 @@ x = d3.scale.linear()
 	.range [0, width]
 
 y = d3.scale.linear()
-	.range [0, height]
-	#.range [height, 0]
+	.range [height, 0]
 
 z = d3.scale.category20c()
 
@@ -67,10 +66,13 @@ d3.json "data.json", (error, rawScoreData) ->
 	player.append "path"
 		.attr "class", "line"
 		.attr "d", (d) -> line d.scores
-		.attr "title", (d) -> d.name
 		.style "stroke", (d) -> z d.name
-		.on "mouseover", -> d3.select(this).classed("hover", true)
-		.on "mouseout", -> d3.select(this).classed("hover", false)
+
+	player.append "path"
+		.attr "class", "line-target"
+		.attr "d", (d) -> line d.scores
+		.on "mouseover", -> d3.select(this.parentNode).classed("hover", true)
+		.on "mouseout", -> d3.select(this.parentNode).classed("hover", false)
 
 	player.append "text"
 		.text (d) -> d.name
