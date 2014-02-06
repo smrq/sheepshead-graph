@@ -9,22 +9,29 @@
 <style>
 
 body {
-  font: 10px sans-serif;
+	font: 10px sans-serif;
 }
 
 .axis path,
 .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
 }
 
 .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
+	fill: none;
+	stroke: steelblue;
+	stroke-width: 1.5px;
 }
 
+.line.hover { stroke-width: 5px; }
+
+.line + .caption {
+	display: none;
+	font-size: 14px;
+}
+.line.hover + .caption { display: block; }
 
 </style>
 </head>
@@ -151,6 +158,15 @@ player.append "path"
 	.attr "d", (d) -> line d.scores
 	.attr "title", (d) -> d.name
 	.style "stroke", (d) -> color d.name
+	.on "mouseover", -> d3.select(this).classed("hover", true)
+	.on "mouseout", -> d3.select(this).classed("hover", false)
+
+player.append "text"
+	.text (d) -> d.name
+	.attr "class", "caption"
+	.style "fill", (d) -> color d.name
+	.attr "x", 12
+	.attr "y", height - 15
 
 window._g = { scoreData }
 
