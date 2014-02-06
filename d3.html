@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+
+</style>
+</head>
+<body>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+<script type="text/coffeescript">
+
+rawScoreData = {
+	"individual": {
+		"Mamie Bishop":    	[0,0,0,0,0,0,-7,0,0,0,0,0],
+		"Anna Reid":       	[-3,-16,-3,-25,-3,0,0,2,0,0,0,0],
+		"Vickie Underwood":	[62,34,-14,8,-14,2,-3,-6,18,-10,-11,-4],
+		"Jesus Reed":      	[-15,0,0,0,0,0,3,-23,0,0,0,0],
+		"Marc Lane":       	[1,-14,37,50,-17,-6,-56,-7,-23,0,-8,-2],
+		"Billie Hall":     	[0,0,0,0,0,2,0,0,0,0,0,0],
+		"Eduardo French":  	[44,25,7,26,-12,-7,0,3,3,17,0,0],
+		"Spencer Sherman": 	[-19,4,66,-35,58,29,-17,1,-19,0,0,0],
+		"Jay Carroll":     	[7,33,30,-6,37,42,82,31,-2,-3,24,10],
+		"Dolores Green":   	[0,0,0,0,0,0,0,0,0,0,0,-7],
+		"Olga Higgins":    	[-9,0,0,0,0,0,0,0,0,0,0,0],
+		"Rosie Guerrero":  	[0,0,0,0,0,4,0,0,0,0,0,0],
+		"Jerry Steele":    	[68,-87,13,-46,-7,-2,-6,-11,11,-6,-30,-44],
+		"Lynette Harper":  	[0,0,0,0,0,0,-13,0,0,0,0,0],
+		"Grace Abbott":    	[-58,-66,-34,0,-9,-23,0,0,3,0,0,0],
+		"Gregory Pearson": 	[0,0,0,0,0,0,0,0,-1,0,0,0],
+		"Lucia Doyle":     	[-34,15,-67,29,11,-19,8,-4,9,0,0,12],
+		"Dominick Nelson": 	[0,0,0,0,0,0,20,0,0,0,0,0],
+		"Brandy Silva":    	[-40,14,-27,6,-14,-23,0,0,0,-2,0,30],
+		"Rolando Holland": 	[2,35,14,-3,-22,-27,10,-25,26,-5,16,-3],
+		"Alexis Campbell": 	[-6,23,-22,-4,-8,28,-21,39,-25,9,9,8]
+	},
+	"cumulative": {
+		"Mamie Bishop":    	[0,0,0,0,0,0,-7,-7,-7,-7,-7,-7],
+		"Anna Reid":       	[-3,-19,-22,-47,-50,-50,-50,-48,-48,-48,-48,-48],
+		"Vickie Underwood":	[62,96,82,90,76,78,75,69,87,77,66,62],
+		"Jesus Reed":      	[-15,-15,-15,-15,-15,-15,-12,-35,-35,-35,-35,-35],
+		"Marc Lane":       	[1,-13,24,74,57,51,-5,-12,-35,-35,-43,-45],
+		"Billie Hall":     	[0,0,0,0,0,2,2,2,2,2,2,2],
+		"Eduardo French":  	[44,69,76,102,90,83,83,86,89,106,106,106],
+		"Spencer Sherman": 	[-19,-15,51,16,74,103,86,87,68,68,68,68],
+		"Jay Carroll":     	[7,40,70,64,101,143,225,256,254,251,275,285],
+		"Dolores Green":   	[0,0,0,0,0,0,0,0,0,0,0,-7],
+		"Olga Higgins":    	[-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9],
+		"Rosie Guerrero":  	[0,0,0,0,0,4,4,4,4,4,4,4],
+		"Jerry Steele":    	[68,-19,-6,-52,-59,-61,-67,-78,-67,-73,-103,-147],
+		"Lynette Harper":  	[0,0,0,0,0,0,-13,-13,-13,-13,-13,-13],
+		"Grace Abbott":    	[-58,-124,-158,-158,-167,-190,-190,-190,-187,-187,-187,-187],
+		"Gregory Pearson": 	[0,0,0,0,0,0,0,0,-1,-1,-1,-1],
+		"Lucia Doyle":     	[-34,-19,-86,-57,-46,-65,-57,-61,-52,-52,-52,-40],
+		"Dominick Nelson": 	[0,0,0,0,0,0,20,20,20,20,20,20],
+		"Brandy Silva":    	[-40,-26,-53,-47,-61,-84,-84,-84,-84,-86,-86,-56],
+		"Rolando Holland": 	[2,37,51,48,26,-1,9,-16,10,5,21,18],
+		"Alexis Campbell": 	[-6,17,-5,-9,-17,11,-10,29,4,13,22,30]
+	}
+}
+
+color = d3.scale.category20()
+scoreData = ({ name, scores: ({score, month} for score, month in scores) } for name, scores of rawScoreData.cumulative)
+
+margin = { top: 20, right: 20, bottom: 30, left: 50 }
+width = 720 - margin.left - margin.right
+height = 480 - margin.top - margin.bottom
+
+multiExtent = (dataSet, accessor1, accessor2) -> [
+	d3.min dataSet, (x) -> d3.min accessor1(x), (y) -> accessor2(y)
+	d3.max dataSet, (x) -> d3.max accessor1(x), (y) -> accessor2(y)
+]
+
+x = d3.scale.linear()
+	.range [0, width]
+	.domain multiExtent scoreData, ((d) -> d.scores), ((d) -> d.month)
+
+y = d3.scale.linear()
+	.range [0, height]
+	.domain multiExtent scoreData, ((d) -> d.scores), ((d) -> d.score)
+
+xAxis = d3.svg.axis()
+	.scale x
+	.orient "bottom"
+
+yAxis = d3.svg.axis()
+	.scale y
+	.orient "left"
+
+line = d3.svg.line()
+	.x (d) -> foo = d.month; console.log foo; x foo
+	.y (d) -> y d.score
+
+svg = d3.select "body"
+	.append "svg"
+	.attr "width", width + margin.left + margin.right
+	.attr "height", height + margin.top + margin.bottom
+
+g = svg.append "g"
+	.attr "transform", "translate(#{margin.left},#{margin.top})"
+
+g.append "g"
+	.attr "class", "x axis"
+	.attr "transform", "translate(0,#{height})"
+	.call xAxis
+
+g.append "g"
+	.attr "class", "y axis"
+	.call yAxis
+	.append "text"
+	.attr "transform", "rotate(-90)"
+	.attr "y", 6
+	.attr "dy", ".71em"
+	.style "text-anchor", "end"
+	.text "Score"
+
+player = g.selectAll ".player"
+	.data scoreData
+	.enter()
+	.append "g"
+	.attr "class", "player"
+
+player.append "path"
+	.attr "class", "line"
+	.attr "d", (d) -> line d.scores
+	.attr "title", (d) -> d.name
+	.style "stroke", (d) -> color d.name
+
+window._g = { scoreData }
+
+</script>
+</body>
+</html>
