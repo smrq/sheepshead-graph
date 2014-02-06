@@ -6,6 +6,7 @@ gutil = require 'gulp-util'
 livereload = require 'gulp-livereload'
 open = require 'gulp-open'
 path = require 'path'
+sass = require 'gulp-sass'
 watch = require 'gulp-watch'
 
 toBuild = gulp.dest './build/'
@@ -21,6 +22,12 @@ gulp.task 'default', ->
 
 	gulp.src ['./src/*.css', './src/*.html', './src/*.json']
 		.pipe watch()
+		.pipe toBuild
+		.pipe livereload()
+
+	gulp.src ['./src/*.scss']
+		.pipe watch()
+		.pipe sass()
 		.pipe toBuild
 		.pipe livereload()
 

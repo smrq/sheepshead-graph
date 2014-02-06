@@ -1,5 +1,5 @@
 body {
-	font: 10px sans-serif;
+	font: 10px sans-serif
 }
 
 .axis path,
@@ -9,7 +9,9 @@ body {
 	shape-rendering: crispEdges;
 }
 
-.x.axis .tick { display: none; }
+.x.axis .tick {
+	display: none;
+}
 
 .line {
 	fill: none;
@@ -17,10 +19,15 @@ body {
 	stroke-width: 1.5px;
 }
 
-.line.hover { stroke-width: 5px; }
+.line.hover {
+	stroke-width: 5px;
+}
 
 .line + .caption {
 	display: none;
 	font-size: 14px;
 }
-.line.hover + .caption { display: block; }
+
+.line.hover + .caption {
+	display: block;
+}
