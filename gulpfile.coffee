@@ -16,7 +16,6 @@ watch = require 'gulp-watch'
 BUILD_FOLDER = './build/'
 EXPRESS_PORT = 4000
 
-
 startExpress = ->
 	app = express()
 	app.use connectLivereload()
@@ -25,21 +24,18 @@ startExpress = ->
 
 gulp.task 'static', ->
 	gulp.src './src/*.json'
-		.pipe watch()
 		.pipe gulp.dest BUILD_FOLDER
 		.pipe livereload()
 
 gulp.task 'styles', ->
 	gulp.src './src/*.scss'
-		.pipe watch()
 		.pipe sass()
-		.pipe rename 'bundle.css'
+		.pipe concat 'bundle.css'
 		.pipe gulp.dest BUILD_FOLDER
 		.pipe livereload()
 
 gulp.task 'scripts', ->
 	gulp.src './src/main.coffee', read: false
-		.pipe watch()
 		.pipe browserify
 			transform: ['coffeeify']
 			extensions: ['.coffee']
@@ -49,15 +45,22 @@ gulp.task 'scripts', ->
 
 gulp.task 'markup', ->
 	gulp.src './src/*.html'
-		.pipe watch()
 		.pipe htmlreplace
 			styles: 'bundle.css'
 			scripts: 'bundle.js'
 		.pipe gulp.dest BUILD_FOLDER
+		.pipe livereload()
 
-gulp.task 'openBrowser', ->
+gulp.task 'watch', ->
+	gulp.watch './src/*.json', -> gulp.run 'static'
+	gulp.watch './src/*.scss', -> gulp.run 'styles'
+	gulp.watch './src/*.coffee', -> gulp.run 'scripts'
+	gulp.watch './src/*.html', -> gulp.run 'markup'
+
+gulp.task 'browse', ->
 	startExpress()
 	gulp.src './src/graph.html'
 		.pipe open "", url: "http://localhost:#{EXPRESS_PORT}/graph.html"
 
-gulp.task 'default', ['static', 'styles', 'scripts', 'markup', 'openBrowser' ]
+gulp.task 'default', ['static', 'styles', 'scripts', 'markup' ]
+gulp.task 'dev', ['default', 'watch', 'browse']
