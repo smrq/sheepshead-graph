@@ -13,17 +13,27 @@ body {
 	display: none;
 }
 
-.player .line {
+.player .cumulative-score {
 	fill: none;
 	stroke: steelblue;
 	stroke-width: 1.5px;
+	opacity: 0.6;
 }
 
-.player.hover .line {
+.player.hover .cumulative-score {
 	stroke-width: 5px;
+	opacity: 1;
 }
 
-.player .line-target {
+.player .individual-score {
+	opacity: 0.4;
+}
+
+.player.hover .individual-score {
+	opacity: 1;
+}
+
+.player .hover-target {
 	fill: none;
 	stroke: black;
 	stroke-width: 15px;
