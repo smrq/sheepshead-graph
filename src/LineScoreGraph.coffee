@@ -1,10 +1,5 @@
 _ = require "underscore"
 
-multiExtent = (dataSet, accessor1, accessor2) -> [
-	d3.min dataSet, (x) -> d3.min accessor1(x), (y) -> accessor2(y)
-	d3.max dataSet, (x) -> d3.max accessor1(x), (y) -> accessor2(y)
-]
-
 module.exports = class LineScoreGraph
 	constructor: ({width, height}) ->
 		@margin = { top: 20, right: 20, bottom: 30, left: 50 }
@@ -30,7 +25,7 @@ module.exports = class LineScoreGraph
 		@line = d3.svg.line()
 			.x (d) => @scaleX d.month
 			.y (d) => @scaleY d.cumulative
-			#.interpolate "basis"
+			.interpolate "cardinal"
 
 		@svg = d3.select "body"
 			.append "svg"
@@ -40,37 +35,22 @@ module.exports = class LineScoreGraph
 		@g = @svg.append "g"
 			.attr "transform", "translate(#{@margin.left},#{@margin.top})"
 
-	update: (scoreData) ->
-		self = this
-
-		xDomain = multiExtent scoreData, ((d) -> d.scores), ((d) -> d.month)
-		yDomain = multiExtent scoreData, ((d) -> d.scores), ((d) -> d.cumulative)
-		zDomain = scoreData.length
-
-		barWidth = self.width / zDomain / (xDomain[1] - xDomain[0]) / 2
-
-		self.scaleX.domain xDomain
-		self.scaleY.domain yDomain
-
-		player = self.g.selectAll ".player"
-			.data scoreData
-			.enter()
-			.append "g"
-			.attr "class", "player"
-
-		player.append "path"
-			.attr "class", "cumulative-score"
-			.style "stroke", (d) -> self.scaleZ d.name
-			.attr "d", (d) -> self.line d.scores
-
+	drawHoverTarget: (player) ->
 		player.append "path"
 			.attr "class", "hover-target"
-			.attr "d", (d) -> self.line d.scores
-			.on "mouseover", -> d3.select(this.parentNode).classed "hover", true
-			.on "mouseout", -> d3.select(this.parentNode).classed "hover", false
+			.attr "d", (d) => @line d.scores
+			.on "mouseover", ->
+				d3.select(this.parentNode).classed "hover", true
+				d3.select(this.parentNode.parentNode).classed "hover", true
+			.on "mouseout", ->
+				d3.select(this.parentNode).classed "hover", false
+				d3.select(this.parentNode.parentNode).classed "hover", false
 
-		player.each (p, pi) ->
-			console.log p, pi
+	drawIndividualScoreBars: (player) ->
+		self = this
+		barWidth = 3
+
+		player.each (p) ->
 			d3.select(this)
 				.selectAll ".individual-score"
 				.data (d) -> d.scores
@@ -78,31 +58,63 @@ module.exports = class LineScoreGraph
 				.append "rect"
 				.attr "class", "individual-score"
 				.attr "width", barWidth
-				.attr "height", (d) -> Math.abs (self.scaleY 0) - (self.scaleY d.individual)
-				.attr "y", (d) -> Math.min self.scaleY(0), self.scaleY(d.individual) - self.scaleY(yDomain[1])
-				.attr "x", (d) -> self.scaleX(d.month) + (barWidth * pi)
+				.attr "height", (d) -> Math.abs self.scaleY(0) - self.scaleY(d.individual)
+				.attr "y", (d) -> Math.min self.scaleY(0), self.scaleY(d.individual) - self.scaleY(self.scaleY.domain()[1])
+				.attr "x", (d) -> self.scaleX(d.month) - (barWidth / 2)
 				.style "fill", self.scaleZ p.name
-				.on "mouseover", -> d3.select(p).classed "hover", true
-				.on "mouseout", -> d3.select(p).classed "hover", false
 
+	drawCaption: (player) ->
 		player.append "text"
 			.text (d) -> d.name
 			.attr "class", "caption"
-			.style "fill", (d) -> self.scaleZ d.name
+			.style "fill", (d) => @scaleZ d.name
 			.attr "x", 12
-			.attr "y", self.height - 15
+			.attr "y", @height - 15
 
-		self.g.append "g"
+	drawCumulativeScoreLine: (player) ->
+		player.append "path"
+			.attr "class", "cumulative-score"
+			.style "stroke", (d) => @scaleZ d.name
+			.attr "d", (d) => @line d.scores
+
+	drawAxes: ->
+		@g.append "g"
 			.attr "class", "x axis"
-			.attr "transform", "translate(0,#{self.scaleY 0})"
-			.call self.xAxis
+			.attr "transform", "translate(0,#{@scaleY 0})"
+			.call @xAxis
 
-		self.g.append "g"
+		@g.append "g"
 			.attr "class", "y axis"
-			.call self.yAxis
+			.call @yAxis
 			.append "text"
 			.attr "transform", "rotate(-90)"
 			.attr "y", 6
 			.attr "dy", ".71em"
 			.style "text-anchor", "end"
 			.text "Score"
+
+	updateDomain: (scoreData) ->
+		@scaleX.domain [
+			d3.min scoreData, (playerData) -> d3.min playerData.scores, (scoreData) -> scoreData.month
+			d3.max scoreData, (playerData) -> d3.max playerData.scores, (scoreData) -> scoreData.month
+		]
+
+		@scaleY.domain [
+			d3.min scoreData, (playerData) -> d3.min playerData.scores, (scoreData) -> Math.min scoreData.cumulative, scoreData.individual
+			d3.max scoreData, (playerData) -> d3.max playerData.scores, (scoreData) -> Math.max scoreData.cumulative, scoreData.individual
+		]
+
+	update: (scoreData) ->
+		@updateDomain scoreData
+
+		player = @g.selectAll ".player"
+			.data scoreData
+			.enter()
+			.append "g"
+			.attr "class", "player"
+
+		@drawIndividualScoreBars player
+		@drawCumulativeScoreLine player
+		@drawCaption player
+		@drawHoverTarget player
+		@drawAxes()

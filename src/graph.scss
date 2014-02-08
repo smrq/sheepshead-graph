@@ -20,31 +20,36 @@ body {
 	opacity: 0.6;
 }
 
-.player.hover .cumulative-score {
-	stroke-width: 5px;
-	opacity: 1;
-}
-
 .player .individual-score {
-	opacity: 0.4;
+	display: none;
 }
 
-.player.hover .individual-score {
-	opacity: 1;
+.player .caption {
+	display: none;
+	font-size: 14px;
+	font-weight: bold;
 }
 
-.player .hover-target {
+.hover-target {
 	fill: none;
 	stroke: black;
 	stroke-width: 15px;
 	opacity: 0;
 }
 
-.player .caption {
-	display: none;
-	font-size: 14px;
+.hover .player .cumulative-score {
+	opacity: 0.4;
 }
 
-.player.hover .caption {
+.hover .player.hover .individual-score {
+	display: block;
+}
+
+.hover .player.hover .cumulative-score {
+	stroke-width: 5px;
+	opacity: 1;
+}
+
+.hover .player.hover .caption {
 	display: block;
 }
