@@ -23,46 +23,47 @@ startExpress = ->
 	app.use express.static path.join __dirname, BUILD_FOLDER
 	app.listen EXPRESS_PORT
 
-gulp.task 'static', ->
+content = ->
 	gulp.src './src/*.json'
 		.pipe gulp.dest BUILD_FOLDER
-		.pipe livereload()
 
-gulp.task 'styles', ->
+styles = ->
 	gulp.src './src/*.scss'
 		.pipe sass()
 		.pipe concat 'bundle.css'
 		.pipe gulp.dest BUILD_FOLDER
-		.pipe livereload()
 
-gulp.task 'scripts', ->
+scripts = ->
 	gulp.src './src/main.coffee', read: false
 		.pipe browserify
-			transform: ['coffeeify']
+			transform: ['coffeeify', 'debowerify']
 			extensions: ['.coffee']
 		.pipe rename 'bundle.js'
 		.pipe gulp.dest BUILD_FOLDER
-		.pipe livereload()
 
-gulp.task 'markup', ->
+markup = ->
 	gulp.src './src/*.jade'
 		.pipe jade pretty: true
 		.pipe htmlreplace
 			styles: 'bundle.css'
 			scripts: 'bundle.js'
 		.pipe gulp.dest BUILD_FOLDER
-		.pipe livereload()
 
-gulp.task 'watch', ->
-	gulp.watch './src/*.json', -> gulp.run 'static'
-	gulp.watch './src/*.scss', -> gulp.run 'styles'
-	gulp.watch './src/*.coffee', -> gulp.run 'scripts'
-	gulp.watch './src/*.jade', -> gulp.run 'markup'
+gulp.task 'content', content
+gulp.task 'styles', styles
+gulp.task 'scripts', scripts
+gulp.task 'markup', markup
+gulp.task 'build', ['content', 'styles', 'scripts', 'markup']
 
-gulp.task 'browse', ->
+gulp.task 'watch', ['build'], ->
+	gulp.watch './src/*.json', -> content().pipe livereload()
+	gulp.watch './src/*.scss', -> styles().pipe livereload()
+	gulp.watch './src/*.coffee', -> scripts().pipe livereload()
+	gulp.watch './src/*.jade', -> markup().pipe livereload()
+
+gulp.task 'browse', ['watch'], ->
 	startExpress()
 	gulp.src './src/graph.jade'
 		.pipe open "", url: "http://localhost:#{EXPRESS_PORT}/graph.html"
 
-gulp.task 'default', ['static', 'styles', 'scripts', 'markup' ]
-gulp.task 'dev', ['default', 'watch', 'browse']
+gulp.task 'default', ['build']
