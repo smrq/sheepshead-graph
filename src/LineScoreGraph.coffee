@@ -1,7 +1,7 @@
 _ = require "underscore"
 
 module.exports = class LineScoreGraph
-	constructor: ({width, height, @duration}) ->
+	constructor: ({container, width, height, @duration}) ->
 		@margin = { top: 20, right: 20, bottom: 30, left: 50 }
 		@width = width - @margin.left - @margin.right
 		@height = height - @margin.top - @margin.bottom
@@ -29,7 +29,7 @@ module.exports = class LineScoreGraph
 			.y (d) => @yScale d.cumulative
 			.interpolate "monotone"
 
-		@svg = d3.select "body"
+		@svg = d3.select container
 			.append "svg"
 			.attr "width", width
 			.attr "height", height
@@ -89,10 +89,13 @@ module.exports = class LineScoreGraph
 			.call @yAxis
 
 	initPlayer: (player) ->
-		player.append "path"
+		player.append "g"
 			.attr "class", "cumulative-score"
+			.append "path"
 			.style "stroke", (d) => @zScale d.name
 			.attr "d", (d) => @line d.scores
+
+
 		player.append "text"
 			.attr "class", "caption"
 			.text (d) -> d.name
@@ -102,36 +105,55 @@ module.exports = class LineScoreGraph
 
 	updatePlayer: (player) ->
 		self = this
+		barWidth = 3
+		pointRadius = 5
 
-		player.select ".cumulative-score"
+		player.select ".cumulative-score path"
 			.transition()
 			.duration @duration
 			.ease "sin-in-out"
 			.attr "d", (d) => @line d.scores
-		barWidth = 3
 
 		player.each (p) ->
-			d3.select(this)
+			cumulativeScore = d3.select(this)
+				.select ".cumulative-score"
+				.selectAll "circle"
+				.data (d) -> d.scores
+			cumulativeScore.enter()
+				.call (s) ->
+					s.append "circle"
+						.attr "r", pointRadius
+						.style "stroke", self.zScale p.name
+						.transition()
+						.duration @duration
+						.ease "sin-in-out"
+						.attr "cx", (d) -> self.xScale d.month
+						.attr "cy", (d) -> self.yScale d.cumulative
+
+			individualScore = d3.select(this)
 				.selectAll ".individual-score"
 				.data (d) -> d.scores
-				.enter()
-				.append "rect"
-				.attr "class", "individual-score"
-				.attr "width", barWidth
-				.attr "height", (d) -> Math.abs self.yScale(0) - self.yScale(d.individual)
-				.attr "y", (d) -> Math.min self.yScale(0), self.yScale(d.individual) - self.yScale(self.yScale.domain()[1])
-				.attr "x", (d) -> self.xScale(d.month) - (barWidth / 2)
-				.style "fill", self.zScale p.name
+
+			individualScore.enter()
+				.call (s) ->
+					s.append "rect"
+						.attr "class", "individual-score"
+						.attr "width", barWidth
+						.attr "height", (d) -> Math.abs self.yScale(0) - self.yScale(d.individual)
+						.attr "x", (d) -> self.xScale(d.month) - (barWidth / 2)
+						.attr "y", (d) -> Math.min self.yScale(0), self.yScale(d.individual) - self.yScale(self.yScale.domain()[1])
+						.style "fill", self.zScale p.name
+
 
 		player.append "path"
 			.attr "class", "hover-target"
 			.attr "d", (d) => @line d.scores
 			.on "mouseover", ->
 				d3.select(this.parentNode).classed "hover", true
-				d3.select(this.parentNode.parentNode).classed "hover", true
+				d3.select(this.parentNode.parentNode).classed "any-hover", true
 			.on "mouseout", ->
 				d3.select(this.parentNode).classed "hover", false
-				d3.select(this.parentNode.parentNode).classed "hover", false
+				d3.select(this.parentNode.parentNode).classed "any-hover", false
 
 	initAxes: ->
 		@svg.append "g"

@@ -2,6 +2,7 @@ _ = require "underscore"
 LineScoreGraph = require "./LineScoreGraph"
 
 graph = new LineScoreGraph
+	container: "#graph"
 	width: 1024
 	height: 600
 	duration: 1500
