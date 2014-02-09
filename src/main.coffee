@@ -4,6 +4,7 @@ LineScoreGraph = require "./LineScoreGraph"
 graph = new LineScoreGraph
 	width: 1024
 	height: 600
+	duration: 1500
 
 loadData = (path) ->
 	d3.json path, (error, rawScoreData) ->
@@ -16,6 +17,6 @@ loadData = (path) ->
 
 		graph.update scoreData
 
-loadData "data.json"
+loadData "someData.json"
 
-_.extend global, { graph, loadData }
+_.extend global, { graph, update: loadData }

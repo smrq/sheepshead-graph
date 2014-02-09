@@ -17,6 +17,7 @@
     "gulp-html-replace": "~0.2.0",
     "gulp-concat": "~2.1.7",
     "gulp-rename": "~0.2.2",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "gulp-jade": "~0.4.1"
   }
 }

@@ -6,6 +6,7 @@ express = require 'express'
 gulp = require 'gulp'
 gutil = require 'gulp-util'
 htmlreplace = require 'gulp-html-replace'
+jade = require 'gulp-jade'
 livereload = require 'gulp-livereload'
 open = require 'gulp-open'
 path = require 'path'
@@ -44,7 +45,8 @@ gulp.task 'scripts', ->
 		.pipe livereload()
 
 gulp.task 'markup', ->
-	gulp.src './src/*.html'
+	gulp.src './src/*.jade'
+		.pipe jade pretty: true
 		.pipe htmlreplace
 			styles: 'bundle.css'
 			scripts: 'bundle.js'
@@ -55,11 +57,11 @@ gulp.task 'watch', ->
 	gulp.watch './src/*.json', -> gulp.run 'static'
 	gulp.watch './src/*.scss', -> gulp.run 'styles'
 	gulp.watch './src/*.coffee', -> gulp.run 'scripts'
-	gulp.watch './src/*.html', -> gulp.run 'markup'
+	gulp.watch './src/*.jade', -> gulp.run 'markup'
 
 gulp.task 'browse', ->
 	startExpress()
-	gulp.src './src/graph.html'
+	gulp.src './src/graph.jade'
 		.pipe open "", url: "http://localhost:#{EXPRESS_PORT}/graph.html"
 
 gulp.task 'default', ['static', 'styles', 'scripts', 'markup' ]
