@@ -36,15 +36,17 @@ styles = ->
 		.pipe gulp.dest BUILD_FOLDER
 
 scripts = ->
+	browserifyOpts =
+		debug: true
+		transform: ['coffeeify', 'debowerify']
+		extensions: ['.coffee']
+		shim:
+			angular:
+				path: 'bower_components/angular/angular.js'
+				exports: 'angular'
+
 	gulp.src './src/main.coffee', read: false
-		.pipe browserify
-			debug: true
-			transform: ['coffeeify', 'debowerify']
-			extensions: ['.coffee']
-			shim:
-				angular:
-					path: 'bower_components/angular/angular.js'
-					exports: 'angular'
+		.pipe browserify(browserifyOpts).on 'error', gutil.log
 		.pipe rename 'bundle.js'
 		.pipe fixSourceMaps()
 		.pipe gulp.dest BUILD_FOLDER

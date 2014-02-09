@@ -11,8 +11,9 @@ html(ng-app="app")
 	body
 		div(ng-controller="GraphCtrl")
 			line-score-graph(data-width=1024, data-height=600, data-duration=1500, data-scores="scores")
-			button(ng-click="load1()") Load data
-			button(ng-click="load2()") Load more data
-			button(ng-click="load3()") Load way more data
+			.debug-buttons
+				button(ng-click="load1()") Load data
+				button(ng-click="load2()") Load more data
+				button(ng-click="load3()") Load way more data
 		// build:scripts
 		// endbuild
