@@ -10,8 +10,9 @@ html(ng-app="app")
 
 	body
 		div(ng-controller="GraphCtrl")
-			line-score-graph(data-width=1024, data-height=600, data-duration=1500, data-scores="scores")
+			line-score-graph(width=1024, height=600, duration=1500, scores="scores")
 			.debug-buttons
+				button(ng-click="load0()") Unload all data
 				button(ng-click="load1()") Load data
 				button(ng-click="load2()") Load more data
 				button(ng-click="load3()") Load way more data

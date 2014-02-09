@@ -57,9 +57,9 @@ module.exports = (mod) ->
 				.attr 'y', 12
 				.text 'Score'
 
-			scope.update = (scoreData) ->
+			scope.update = ->
 				player = scope.svg.selectAll '.player'
-					.data scoreData, (d) -> d.name
+					.data scope.scores, (d) -> d.name
 
 				# add new lines
 				player.enter()
@@ -72,15 +72,16 @@ module.exports = (mod) ->
 					.style 'opacity', 1
 
 				# update scales to match new bounds
-				scope.xScale.domain [
-					d3.min scoreData, (playerData) -> d3.min playerData.scores, (scoreData) -> scoreData.month
-					d3.max scoreData, (playerData) -> d3.max playerData.scores, (scoreData) -> scoreData.month
-				]
+				if scope.scores.length > 0
+					scope.xScale.domain [
+						d3.min scope.scores, (p) -> d3.min p.scores, (s) -> s.month
+						d3.max scope.scores, (p) -> d3.max p.scores, (s) -> s.month
+					]
 
-				scope.yScale.domain [
-					d3.min scoreData, (playerData) -> d3.min playerData.scores, (scoreData) -> Math.min scoreData.cumulative, scoreData.individual
-					d3.max scoreData, (playerData) -> d3.max playerData.scores, (scoreData) -> Math.max scoreData.cumulative, scoreData.individual
-				]
+					scope.yScale.domain [
+						d3.min scope.scores, (p) -> d3.min p.scores, (s) -> Math.min s.cumulative, s.individual
+						d3.max scope.scores, (p) -> d3.max p.scores, (s) -> Math.max s.cumulative, s.individual
+					]
 
 				# rescale all new and existing lines
 				player.call (s) -> scope.updatePlayer s
@@ -174,4 +175,4 @@ module.exports = (mod) ->
 						d3.select(this.parentNode).classed 'hover', false
 						d3.select(this.parentNode.parentNode).classed 'any-hover', false
 
-			scope.$watch 'scores', (newScores) -> scope.update newScores if newScores?
+			scope.$watch 'scores', (newScores) -> scope.update()
