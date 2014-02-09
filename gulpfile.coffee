@@ -14,6 +14,8 @@ rename = require 'gulp-rename'
 sass = require 'gulp-sass'
 watch = require 'gulp-watch'
 
+fixSourceMaps = require './fixSourceMaps'
+
 BUILD_FOLDER = './build/'
 EXPRESS_PORT = 4000
 
@@ -36,9 +38,15 @@ styles = ->
 scripts = ->
 	gulp.src './src/main.coffee', read: false
 		.pipe browserify
+			debug: true
 			transform: ['coffeeify', 'debowerify']
 			extensions: ['.coffee']
+			shim:
+				angular:
+					path: 'bower_components/angular/angular.js'
+					exports: 'angular'
 		.pipe rename 'bundle.js'
+		.pipe fixSourceMaps()
 		.pipe gulp.dest BUILD_FOLDER
 
 markup = ->
@@ -56,6 +64,7 @@ gulp.task 'markup', markup
 gulp.task 'build', ['content', 'styles', 'scripts', 'markup']
 
 gulp.task 'watch', ['build'], ->
+	livereload()
 	gulp.watch './src/*.json', -> content().pipe livereload()
 	gulp.watch './src/*.scss', -> styles().pipe livereload()
 	gulp.watch './src/*.coffee', -> scripts().pipe livereload()
@@ -64,6 +73,6 @@ gulp.task 'watch', ['build'], ->
 gulp.task 'browse', ['watch'], ->
 	startExpress()
 	gulp.src './src/graph.jade'
-		.pipe open "", url: "http://localhost:#{EXPRESS_PORT}/graph.html"
+		.pipe open '', url: "http://localhost:#{EXPRESS_PORT}/graph.html"
 
 gulp.task 'default', ['build']

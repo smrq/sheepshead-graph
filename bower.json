@@ -1,0 +1,10 @@
+{
+  "name": "sheepshead-graph",
+  "version": "0.0.1",
+  "homepage": "https://github.com/smrq/sheepshead-graph",
+  "private": true,
+  "devDependencies": {
+    "angular": "~1.2.12",
+    "d3": "~3.4.1"
+  }
+}

@@ -1,5 +1,5 @@
 doctype
-html
+html(ng-app="app")
 	head
 		meta(charset="utf8")
 		meta(http-equiv="X-UA-Compatible", content="IE=edge")
@@ -9,8 +9,10 @@ html
 		// endbuild
 
 	body
-		#graph
-		script(src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js")
-		script(src="http://d3js.org/d3.v3.min.js")
+		div(ng-controller="GraphCtrl")
+			line-score-graph(data-width=1024, data-height=600, data-duration=1500, data-scores="scores")
+			button(ng-click="load1()") Load data
+			button(ng-click="load2()") Load more data
+			button(ng-click="load3()") Load way more data
 		// build:scripts
 		// endbuild
