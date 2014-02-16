@@ -3,6 +3,7 @@ coffee = require 'gulp-coffee'
 concat = require 'gulp-concat'
 connectLivereload = require 'connect-livereload'
 express = require 'express'
+fixSourceMaps = require 'gulp-fix-windows-source-maps'
 gulp = require 'gulp'
 gutil = require 'gulp-util'
 htmlreplace = require 'gulp-html-replace'
@@ -13,8 +14,6 @@ path = require 'path'
 rename = require 'gulp-rename'
 sass = require 'gulp-sass'
 watch = require 'gulp-watch'
-
-fixSourceMaps = require './fixSourceMaps'
 
 BUILD_FOLDER = './build/'
 EXPRESS_PORT = 4000
