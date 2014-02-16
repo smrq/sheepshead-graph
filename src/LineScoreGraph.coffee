@@ -115,55 +115,12 @@ module.exports = (mod) ->
 					.style 'stroke', (d) -> scope.zScale d.name
 					.attr 'd', (d) -> scope.line d.scores
 
-
 				player.append 'text'
 					.attr 'class', 'caption'
 					.text (d) -> d.name
 					.style 'fill', (d) -> scope.zScale d.name
 					.attr 'x', 12
 					.attr 'y', scope.height - 15
-
-			scope.updatePlayer = (player) ->
-				self = this
-				barWidth = 3
-				pointRadius = 4
-
-				player.select '.cumulative-score path'
-					.transition()
-					.duration scope.duration
-					.ease 'sin-in-out'
-					.attr 'd', (d) -> scope.line d.scores
-
-				player.each (p) ->
-					cumulativeScore = d3.select(this)
-						.select '.cumulative-score'
-						.selectAll 'circle'
-						.data (d) -> d.scores
-					cumulativeScore.enter()
-						.call (s) ->
-							s.append 'circle'
-								.attr 'r', pointRadius
-								.style 'stroke', self.zScale p.name
-								.transition()
-								.duration scope.duration
-								.ease 'sin-in-out'
-								.attr 'cx', (d) -> self.xScale d.month
-								.attr 'cy', (d) -> self.yScale d.cumulative
-
-					individualScore = d3.select(this)
-						.selectAll '.individual-score'
-						.data (d) -> d.scores
-
-					individualScore.enter()
-						.call (s) ->
-							s.append 'rect'
-								.attr 'class', 'individual-score'
-								.attr 'width', barWidth
-								.attr 'height', (d) -> Math.abs self.yScale(0) - self.yScale(d.individual)
-								.attr 'x', (d) -> self.xScale(d.month) - (barWidth / 2)
-								.attr 'y', (d) -> Math.min self.yScale(0), self.yScale(d.individual) - self.yScale(self.yScale.domain()[1])
-								.style 'fill', self.zScale p.name
-
 
 				player.append 'path'
 					.attr 'class', 'hover-target'
@@ -174,5 +131,58 @@ module.exports = (mod) ->
 					.on 'mouseout', ->
 						d3.select(this.parentNode).classed 'hover', false
 						d3.select(this.parentNode.parentNode).classed 'any-hover', false
+
+			scope.updatePlayer = (player) ->
+				player.select '.cumulative-score path'
+					.transition()
+					.duration scope.duration
+					.ease 'sin-in-out'
+					.attr 'd', (d) -> scope.line d.scores
+
+				player.select '.hover-target'
+					.transition()
+					.duration scope.duration
+					.ease 'sin-in-out'
+					.attr 'd', (d) -> scope.line d.scores
+
+				player.each (p) -> scope.intoPlayer p, this
+
+			scope.intoPlayer = (player, element) ->
+				pointRadius = 4
+				barWidth = 3
+
+				cumulativeScore = d3.select element
+					.select '.cumulative-score'
+					.selectAll 'circle'
+					.data (d) -> d.scores
+				cumulativeScore.enter()
+					.append 'circle'
+					.attr 'r', pointRadius
+					.style 'stroke', scope.zScale player.name
+					.attr 'cx', (d) -> scope.xScale d.month
+					.attr 'cy', (d) -> scope.yScale d.cumulative
+				cumulativeScore.transition()
+					.duration scope.duration
+					.ease 'sin-in-out'
+					.attr 'cx', (d) -> scope.xScale d.month
+					.attr 'cy', (d) -> scope.yScale d.cumulative
+
+				individualScore = d3.select element
+					.selectAll '.individual-score'
+					.data (d) -> d.scores
+				individualScore.enter()
+					.append 'rect'
+					.attr 'class', 'individual-score'
+					.attr 'width', barWidth
+					.attr 'height', (d) -> Math.abs scope.yScale(0) - scope.yScale(d.individual)
+					.attr 'x', (d) -> scope.xScale(d.month) - (barWidth / 2)
+					.attr 'y', (d) -> Math.min scope.yScale(0), scope.yScale(d.individual) - scope.yScale(scope.yScale.domain()[1])
+					.style 'fill', scope.zScale player.name
+				individualScore.transition()
+					.duration scope.duration
+					.ease 'sin-in-out'
+					.attr 'height', (d) -> Math.abs scope.yScale(0) - scope.yScale(d.individual)
+					.attr 'x', (d) -> scope.xScale(d.month) - (barWidth / 2)
+					.attr 'y', (d) -> Math.min scope.yScale(0), scope.yScale(d.individual) - scope.yScale(scope.yScale.domain()[1])
 
 			scope.$watch 'scores', (newScores) -> scope.update()
