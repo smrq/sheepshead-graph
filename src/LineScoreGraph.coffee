@@ -132,6 +132,8 @@ module.exports = (mod) ->
 						d3.select(this.parentNode).classed 'hover', false
 						d3.select(this.parentNode.parentNode).classed 'any-hover', false
 
+				player.each (p) -> scope.intoPlayer p, this
+
 			scope.updatePlayer = (player) ->
 				player.select '.cumulative-score path'
 					.transition()
