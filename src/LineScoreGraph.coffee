@@ -14,6 +14,9 @@ module.exports = (mod) ->
 			scope.width = scope.fullwidth - scope.margin.left - scope.margin.right
 			scope.height = scope.fullheight - scope.margin.top - scope.margin.bottom
 
+			scope.pointRadius = 4
+			scope.barWidth = 3
+
 			scope.xScale = d3.scale.linear()
 				.domain [0,11] # temporary until init works
 				.range [0, scope.width]
@@ -150,16 +153,13 @@ module.exports = (mod) ->
 				player.each (p) -> scope.intoPlayer p, this
 
 			scope.intoPlayer = (player, element) ->
-				pointRadius = 4
-				barWidth = 3
-
 				cumulativeScore = d3.select element
 					.select '.cumulative-score'
 					.selectAll 'circle'
 					.data (d) -> d.scores
 				cumulativeScore.enter()
 					.append 'circle'
-					.attr 'r', pointRadius
+					.attr 'r', scope.pointRadius
 					.style 'stroke', scope.zScale player.name
 					.attr 'cx', (d) -> scope.xScale d.month
 					.attr 'cy', (d) -> scope.yScale d.cumulative
@@ -175,16 +175,25 @@ module.exports = (mod) ->
 				individualScore.enter()
 					.append 'rect'
 					.attr 'class', 'individual-score'
-					.attr 'width', barWidth
-					.attr 'height', (d) -> Math.abs scope.yScale(0) - scope.yScale(d.individual)
-					.attr 'x', (d) -> scope.xScale(d.month) - (barWidth / 2)
-					.attr 'y', (d) -> Math.min scope.yScale(0), scope.yScale(d.individual) - scope.yScale(scope.yScale.domain()[1])
+					.attr 'width', scope.barWidth
+					.attr 'height', scope.barHeight
+					.attr 'x', scope.barX
+					.attr 'y', scope.barY
 					.style 'fill', scope.zScale player.name
 				individualScore.transition()
 					.duration scope.duration
 					.ease 'sin-in-out'
-					.attr 'height', (d) -> Math.abs scope.yScale(0) - scope.yScale(d.individual)
-					.attr 'x', (d) -> scope.xScale(d.month) - (barWidth / 2)
-					.attr 'y', (d) -> Math.min scope.yScale(0), scope.yScale(d.individual) - scope.yScale(scope.yScale.domain()[1])
+					.attr 'height', scope.barHeight
+					.attr 'x', scope.barX
+					.attr 'y', scope.barY
+
+			scope.barX = (score) ->
+				scope.xScale(score.month) - (scope.barWidth / 2)
+
+			scope.barY = (score) ->
+				Math.min scope.yScale(0), scope.yScale(score.individual) - scope.yScale(scope.yScale.domain()[1])
+
+			scope.barHeight = (score) ->
+				Math.abs scope.yScale(0) - scope.yScale(score.individual)
 
 			scope.$watch 'scores', (newScores) -> scope.update()
