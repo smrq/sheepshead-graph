@@ -62,6 +62,11 @@ module.exports = (mod) ->
 
 			scope.svgDefs = scope.svg.append 'defs'
 
+			scope.playerGroup = scope.svg.append 'g'
+				.attr 'class', 'players'
+			scope.voronoiGroup = scope.svg.append 'g'
+				.attr 'class', 'voronoi'
+
 			scope.svg.append 'g'
 				.attr 'class', 'x axis'
 				.attr 'transform', "translate(0,#{scope.yScale 0})"
@@ -74,11 +79,6 @@ module.exports = (mod) ->
 				.attr 'transform', 'rotate(-90)'
 				.attr 'y', 12
 				.text 'Score'
-
-			scope.playerGroup = scope.svg.append 'g'
-				.attr 'class', 'players'
-			scope.voronoiGroup = scope.svg.append 'g'
-				.attr 'class', 'voronoi'
 
 			scope.voronoiData = ->
 				d3.nest()
