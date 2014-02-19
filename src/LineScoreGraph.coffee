@@ -1,6 +1,10 @@
 _ = require 'underscore'
 d3 = require 'd3'
 
+d3.selection.prototype.moveToFront = ->
+	@each ->
+		@parentNode.appendChild this
+
 module.exports = (mod) ->
 	mod.directive 'lineScoreGraph', ->
 		restrict: 'E'
@@ -15,6 +19,7 @@ module.exports = (mod) ->
 			scope.height = scope.fullheight - scope.margin.top - scope.margin.bottom
 
 			scope.pointRadius = 4
+			scope.hoverRadius = 30
 			scope.barWidth = 3
 
 			scope.xScale = d3.scale.linear()
@@ -55,6 +60,8 @@ module.exports = (mod) ->
 				.append 'g'
 				.attr 'transform', "translate(#{scope.margin.left},#{scope.margin.top})"
 
+			scope.svgDefs = scope.svg.append 'defs'
+
 			scope.svg.append 'g'
 				.attr 'class', 'x axis'
 				.attr 'transform', "translate(0,#{scope.yScale 0})"
@@ -88,6 +95,7 @@ module.exports = (mod) ->
 				otherPlayers = allPlayers.filter (d) -> d.name isnt point.name
 
 				thisPlayer.classed 'hover', true
+					.moveToFront()
 				thisPlayer.selectAll '.cumulative-score circle'
 					.filter (d) -> d.month is point.month
 					.transition()
@@ -167,15 +175,27 @@ module.exports = (mod) ->
 				# voronoi hover targets
 				voronoiPath = scope.voronoiGroup.selectAll 'path'
 					.data scope.voronoi(scope.voronoiData()), scope.polygon
-
 				voronoiPath.exit()
 					.remove()
-
 				voronoiPath.enter()
 					.append 'path'
 					.attr 'd', scope.polygon
+					.attr 'clip-path', (d, i) -> 'url(#voronoi-clip-' + i + ')'
 					.on 'mouseover', scope.voronoiMouseover
 					.on 'mouseout', scope.voronoiMouseout
+				
+				voronoiClip = scope.svgDefs.selectAll '.voronoi-clip'
+					.data scope.voronoi(scope.voronoiData()), scope.polygon
+				voronoiClip.exit()
+					.remove()
+				voronoiClip.enter()
+					.append 'clipPath'
+					.attr 'class', 'voronoi-clip'
+					.attr 'id', (d, i) -> 'voronoi-clip-' + i
+					.append 'circle'
+					.attr 'r', scope.hoverRadius
+					.attr 'cx', (d) -> scope.xScale d.point.month
+					.attr 'cy', (d) -> scope.yScale d.point.cumulative
 
 			scope.polygon = (points) ->
 				'M' + points.join('L') + 'Z'
