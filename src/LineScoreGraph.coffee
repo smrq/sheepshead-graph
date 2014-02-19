@@ -40,6 +40,14 @@ module.exports = (mod) ->
 				.y (d) -> scope.yScale d.cumulative
 				.interpolate 'monotone'
 
+			scope.voronoi = d3.geom.voronoi()
+				.x (d) -> scope.xScale d.month
+				.y (d) -> scope.yScale d.cumulative
+				.clipExtent [
+					[-scope.margin.left, -scope.margin.top]
+					[scope.width + scope.margin.right, scope.height + scope.margin.bottom]
+				]
+
 			scope.svg = d3.select element[0]
 				.append 'svg'
 				.attr 'width', scope.fullwidth
@@ -60,19 +68,63 @@ module.exports = (mod) ->
 				.attr 'y', 12
 				.text 'Score'
 
+			scope.playerGroup = scope.svg.append 'g'
+				.attr 'class', 'players'
+			scope.voronoiGroup = scope.svg.append 'g'
+				.attr 'class', 'voronoi'
+
+			scope.voronoiData = ->
+				d3.nest()
+					.key (d) -> scope.xScale(d.month) + ',' + scope.yScale(d.cumulative)
+					.rollup (v) -> v[0]
+					.entries d3.merge scope.scores.map ({name, scores}) ->
+						scores.map ({cumulative, month}) ->
+							{ name, cumulative, month }
+					.map (d) -> d.values
+
+			scope.voronoiMouseover = ({point}) ->
+				allPlayers = scope.playerGroup.selectAll '.player'
+				thisPlayer = allPlayers.filter (d) -> d.name is point.name
+				otherPlayers = allPlayers.filter (d) -> d.name isnt point.name
+
+				thisPlayer.classed 'hover', true
+				thisPlayer.selectAll '.cumulative-score circle'
+					.filter (d) -> d.month is point.month
+					.transition()
+					.duration 100
+					.attr 'r', scope.pointRadius * 2
+					.style 'stroke-width', '5px'
+
+				otherPlayers.classed 'no-hover', true
+
+			scope.voronoiMouseout = ({point}) ->
+				allPlayers = scope.playerGroup.selectAll '.player'
+				thisPlayer = allPlayers.filter (d) -> d.name is point.name
+				otherPlayers = allPlayers.filter (d) -> d.name isnt point.name
+
+				thisPlayer.classed 'hover', false
+				thisPlayer.selectAll '.cumulative-score circle'
+					.filter (d) -> d.month is point.month
+					.transition()
+					.duration 100
+					.attr 'r', scope.pointRadius
+					.style 'stroke-width', '2.5px'
+
+				otherPlayers.classed 'no-hover', false
+
 			scope.update = ->
-				player = scope.svg.selectAll '.player'
+				player = scope.playerGroup.selectAll '.player'
 					.data scope.scores, (d) -> d.name
 
 				# add new lines
-				player.enter()
-					.append 'g'
-					.attr 'class', 'player'
-					.call (s) -> scope.initPlayer s
-					.style 'opacity', 0
-					.transition()
-					.duration scope.duration
-					.style 'opacity', 1
+				player.enter().call (p) ->
+					p.append 'g'
+						.attr 'class', 'player'
+						.call (s) -> scope.initPlayer s
+						.style 'opacity', 0
+						.transition()
+						.duration scope.duration
+						.style 'opacity', 1
 
 				# update scales to match new bounds
 				if scope.scores.length > 0
@@ -94,6 +146,7 @@ module.exports = (mod) ->
 					.call (s) -> scope.updatePlayer s
 					.transition()
 					.duration scope.duration
+					.ease 'exp-out'
 					.style 'opacity', 0
 					.remove()
 
@@ -111,6 +164,22 @@ module.exports = (mod) ->
 					.ease 'sin-in-out'
 					.call scope.yAxis
 
+				# voronoi hover targets
+				voronoiPath = scope.voronoiGroup.selectAll 'path'
+					.data scope.voronoi(scope.voronoiData()), scope.polygon
+
+				voronoiPath.exit()
+					.remove()
+
+				voronoiPath.enter()
+					.append 'path'
+					.attr 'd', scope.polygon
+					.on 'mouseover', scope.voronoiMouseover
+					.on 'mouseout', scope.voronoiMouseout
+
+			scope.polygon = (points) ->
+				'M' + points.join('L') + 'Z'
+
 			scope.initPlayer = (player) ->
 				player.append 'g'
 					.attr 'class', 'cumulative-score'
@@ -125,26 +194,10 @@ module.exports = (mod) ->
 					.attr 'x', 12
 					.attr 'y', scope.height - 15
 
-				player.append 'path'
-					.attr 'class', 'hover-target'
-					.attr 'd', (d) -> scope.line d.scores
-					.on 'mouseover', ->
-						d3.select(this.parentNode).classed 'hover', true
-						d3.select(this.parentNode.parentNode).classed 'any-hover', true
-					.on 'mouseout', ->
-						d3.select(this.parentNode).classed 'hover', false
-						d3.select(this.parentNode.parentNode).classed 'any-hover', false
-
 				player.each (p) -> scope.intoPlayer p, this
 
 			scope.updatePlayer = (player) ->
 				player.select '.cumulative-score path'
-					.transition()
-					.duration scope.duration
-					.ease 'sin-in-out'
-					.attr 'd', (d) -> scope.line d.scores
-
-				player.select '.hover-target'
 					.transition()
 					.duration scope.duration
 					.ease 'sin-in-out'
@@ -161,6 +214,8 @@ module.exports = (mod) ->
 					.append 'circle'
 					.attr 'r', scope.pointRadius
 					.style 'stroke', scope.zScale player.name
+					.style 'fill', 'white'
+					.style 'stroke-width', '2.5px'
 					.attr 'cx', (d) -> scope.xScale d.month
 					.attr 'cy', (d) -> scope.yScale d.cumulative
 				cumulativeScore.transition()
