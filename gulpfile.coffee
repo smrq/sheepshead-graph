@@ -30,19 +30,22 @@ content = ->
 
 styles = ->
 	gulp.src './src/*.scss'
-		.pipe sass()
+		.pipe sass().on 'error', gutil.log
 		.pipe concat 'bundle.css'
 		.pipe gulp.dest BUILD_FOLDER
 
 scripts = ->
 	browserifyOpts =
 		debug: true
-		transform: ['coffeeify', 'debowerify']
+		transform: ['coffeeify']
 		extensions: ['.coffee']
 		shim:
 			angular:
 				path: 'bower_components/angular/angular.js'
 				exports: 'angular'
+			d3:
+				path: 'bower_components/d3/d3.js'
+				exports: 'd3'
 
 	gulp.src './src/main.coffee', read: false
 		.pipe browserify(browserifyOpts).on 'error', gutil.log
@@ -52,7 +55,7 @@ scripts = ->
 
 markup = ->
 	gulp.src './src/*.jade'
-		.pipe jade pretty: true
+		.pipe jade(pretty: true).on 'error', gutil.log
 		.pipe htmlreplace
 			styles: 'bundle.css'
 			scripts: 'bundle.js'

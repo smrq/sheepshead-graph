@@ -20,7 +20,6 @@
     "gulp-rename": "~0.2.2",
     "underscore": "~1.5.2",
     "gulp-jade": "~0.4.1",
-    "debowerify": "~0.5.2",
     "convert-source-map": "~0.3.3",
     "event-stream": "~3.1.0",
     "gulp-fix-windows-source-maps": "~0.1.0"
